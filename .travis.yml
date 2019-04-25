@@ -1,0 +1,36 @@
+install:
+  - sudo apt-get install -y subversion g++ zlib1g-dev build-essential git python time gawk gettext unzip file libssl-dev wget gcc flex bison libz-dev libncurses-dev make
+
+addons:
+  apt:
+    update: true
+
+sudo: false
+
+script:
+  - git clone https://github.com/openwrt/openwrt.git -b openwrt-18.06
+  - cd openwrt
+  - ./scripts/feeds update -a
+  - ./scripts/feeds install -a
+  - curl -O https://raw.githubusercontent.com/chankruze/TL-WR841N-v11/master/compiling/tl-wr841n-v11_defconfig
+  - rm -rf .config
+  - mv tl-wr841n-v11_defconfig .config
+  - make download
+  - make -j4
+
+before_deploy:
+  # Set up git user name and tag this commit
+  - git config --local user.name "chankruze"
+  - git config --local user.email "chankruze@gmail.com"
+  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
+  - git tag $TRAVIS_TAG
+
+deploy:
+  provider: releases
+  overwrite: true
+  api_key:
+    secure: b0076HqaYP2RLiKFiZTqc7l1Rn1wdPUPNvdrVqIo088flb1QH7ITbk2Xh4ZvOzqfb4cIVfh0997027vdPcETEwTLCT0qYsMN5F0N3lEt7D73JZS54HTBR8x3OE2kTuq1nYEfmirxfsUUhjL/8ZboDeCPPaUsrdposKf+ScZ98t+Pwr5zqzrfhP7X4SuQp4u0uzkJXoZhSXCzLeKrcN4f9kSH9LAmboAVoFr2pHHPcNCmRzRouCaUYvxnMHUniBpngfHeUFUggycam6fAojZ+Gypza9rbFs+5DiHYVCzzhXxnXbjEnJRzfJA0O7qaskcySxzB0glX5E+lR+kWNdfSyTn3qt2gN2uKgc+goLMsLLSnOKayKpDEvnhBNxV3/FmhabsBT6ko84Muoeyf3a++lbVWe+hSktTbmRZ9GB0QByW0a6OjhKeuUUp62nPaJ5jKDgvH1NuVgmJLqGTmYaX2WesPXagNbWTGdAFb67cCQHEONQhnxRR8xTIhwORkr5zse7/DgdGzPFywNPqUNBsn+pn+Cj2M/C5DIaJs4Tg1TFz9Lsr3fp64K/OTRbj0ZbkIDXExfLyMOJeCxm2Xg9Mls1svUv6KmGOX3Q8aO53N46PeD2Z6C1wnn83ptc/FdjNWGmNhuk2I3Yb4F1aEzgZXvHCioTMtOHhHmPvYJF38RvY=
+  file: openwrt/bin/targets/ar71xx/tiny/openwrt-ar71xx-tiny-tl-wr841-v11-squashfs-factory.bin
+  skip_cleanup: true
+  on:
+    tags: true
