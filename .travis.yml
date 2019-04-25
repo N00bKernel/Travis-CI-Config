@@ -8,15 +8,7 @@ addons:
 sudo: false
 
 script:
-  - git clone https://github.com/openwrt/openwrt.git -b openwrt-18.06
-  - cd openwrt
-  - ./scripts/feeds update -a
-  - ./scripts/feeds install -a
-  - curl -O https://raw.githubusercontent.com/chankruze/TL-WR841N-v11/master/compiling/tl-wr841n-v11_defconfig
-  - rm -rf .config
-  - mv tl-wr841n-v11_defconfig .config
-  - make download
-  - make -j4
+  - bash build.sh
 
 before_deploy:
   # Set up git user name and tag this commit
